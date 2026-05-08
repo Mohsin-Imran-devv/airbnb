@@ -16,6 +16,7 @@ const app = express();
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+app.set("trust proxy", 1);
 
 const MONGO_URL = process.env.MONGO_URL;
 
