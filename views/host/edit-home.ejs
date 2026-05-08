@@ -1,9 +1,19 @@
 <%- include('../partials/head') %>
+<style>
+  .main-div{
+    margin-bottom: 70px !important;
+  }
+  @media (width>=376px) {
+    .main-div{
+    margin-bottom: 20px !important;
+  }
+  }
+</style>
   </head>
 
   <body>
     <%- include('../partials/nav') %>
-      <main class="flex items-center mt-10 md:justify-center md:items-center flex-col">
+      <main class="flex items-center mt-10 md:justify-center md:items-center flex-col main-div sm:mb-1">
 
         <h1 class="text-3xl text-center ">
           <%= editing ? "Edit Your Home" : "Register your Home" %>

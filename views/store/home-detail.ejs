@@ -1,35 +1,59 @@
 <%- include('../partials/head') %>
-  </head>
+</head>
 
-  <body>
-    <%- include('../partials/nav') %>
-      <main class="pb-20">
-        <h1 class="text-2xl text-center mt-5">You are in Home detail Page</h1>
-        <ul class="mt-6 md:ml-88 grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
-          <li
-            class="bg-white rounded-lg self-center shadow-md hover:shadow-lg overflow-hidden transform cursor-pointer border-t-2  border-cyan-600 my-0 mx-auto w-[90%] md:w-[150%] py-4 px-5">
-            <div class="relative h-40 overflow-hidden bg-gray-200">
-              <img src="/<%= home.photo %>" alt="<%= home.houseName %>" class="w-full h-full object-cover">
-            </div>
-            <div class="p-4">
-              <h2 class="text-base font-semibold text-gray-900">
-                <%= home.houseName %>
-              </h2>
-              <p class="text-gray-500 text-xs mt-1">📍 <%= home.location %>
-              </p>
-              <div class="flex justify-between items-center mt-2 pt-3 border-t border-gray-100">
-                <span class="text-lg font-bold text-cyan-600">Rs. <%= home.price %></span>
-                <span class="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded text-xs font-medium">⭐
-                  <%= home.rating %></span>
-              </div>
-                <p style="font-style: italic;" class="text-gray-600 text-sm mt-4">
-                  <%= home.description %>
-                </p>
-            </div>
-            <%- include('../partials/favorite', {home: home})%>
-          </li>
-        </ul>
-      </main>
-  </body>
+<body>
+  <%- include('../partials/nav') %>
+  <main class="pb-20 px-4 md:px-8">
+    
+    <div class="max-w-4xl mx-auto mt-8">
+      
+      <!-- Image -->
+      <div class="relative h-64 md:h-96 rounded-2xl overflow-hidden mb-6">
+        <img src="<%= home.photo %>" alt="<%= home.houseName %>" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"></div>
+        <div class="absolute bottom-4 left-4">
+          <h1 class="text-white text-3xl md:text-4xl font-bold"><%= home.houseName %></h1>
+          <p class="text-gray-300 mt-1">📍 <%= home.location %></p>
+        </div>
+      </div>
 
-  </html>
+      <!-- Details Card -->
+      <div class="bg-[#1A1B26] rounded-2xl p-8 border border-gray-800">
+        
+        <!-- Price & Rating -->
+        <div class="flex flex-wrap justify-between items-center mb-6">
+          <div>
+            <span class="text-gray-400 text-sm">Price per night</span>
+            <div class="text-cyan-400 text-3xl font-bold">Rs. <%= home.price %></div>
+          </div>
+          <div class="flex items-center gap-2 bg-yellow-500/10 px-4 py-2 rounded-full">
+            <span class="text-yellow-400 text-xl">★</span>
+            <span class="text-yellow-400 font-bold text-lg"><%= home.rating %></span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-6">
+          <h3 class="text-white font-semibold mb-2">Description</h3>
+          <p class="text-gray-400 leading-relaxed"><%= home.description %></p>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-wrap gap-3">
+          <a href="<%= home.pdf %>" target="_blank" rel="noopener"  class="bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 px-5 py-2.5 rounded-xl font-medium text-sm transition-all">
+            📄 Download Rules
+          </a>
+          <form action="/favourites" method="POST" class="inline">
+            <input type="hidden" name="id" value="<%= home._id %>">
+            <button type="submit" class="bg-pink-600/20 text-pink-400 hover:bg-pink-600/30 px-5 py-2.5 rounded-xl font-medium text-sm transition-all">
+              ♥ Add to Favorites
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</body>
+</html>

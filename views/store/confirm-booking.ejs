@@ -46,7 +46,7 @@
     /* Image Section */
     .image-section {
         position: relative;
-        height: 280px;
+        min-height: 300px;
         overflow: hidden;
     }
 
@@ -64,8 +64,9 @@
     .home-image {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         transition: transform 0.5s ease;
+        background-color: #0a0a0f;
     }
 
     .booking-card:hover .home-image {
@@ -362,6 +363,9 @@
         main {
             margin: 1rem auto;
         }
+        .booking-card{
+            margin-bottom: 30px !important;;
+        }
 
         .image-section {
             height: 200px;
@@ -434,7 +438,7 @@
     <div class="booking-card">
       <!-- Image Section -->
       <div class="image-section">
-        <img src="/<%= home.photo %>" alt="<%= home.houseName %>" class="home-image">
+        <img src="<%= home.photo %>" alt="<%= home.houseName %>" class="w-full h-full object-cover">
         <div class="image-badge">
           <i class="fas fa-star"></i>
           <span>Featured Home</span>

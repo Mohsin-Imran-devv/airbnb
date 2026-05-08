@@ -1,58 +1,89 @@
 <%- include('../partials/head') %>
+<style>
+  .list{
+    margin-left: 3px; 
+    margin-right: 3px;
+    margin-bottom: 10px;
+  }
+</style>
 </head>
 
-<body>
+<body class="flex flex-col">
   <%- include('../partials/nav') %>
 
-  <main class="pb-30">
+  <main class="pb-20 px-4 md:px-8">
+    
     <% if (favouriteHomes.length === 0) { %>
-      <p class="text-center text-3xl text-gray-500 mt-20">
-        You have no favorite homes yet.
-      </p>
+      <!-- Empty State -->
+      <div class="text-center mt-20">
+        <div class="text-6xl mb-4">💝</div>
+        <p class="text-gray-400 text-xl mb-2">You have no favorite homes yet</p>
+        <p class="text-gray-500 text-sm mb-6">Start exploring and add homes to your favorites!</p>
+        <a href="/index" class="inline-block bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-3 px-8 p-3 rounded-xl transition-all">
+          🏠 Browse Homes
+        </a>
+      </div>
+
     <% } else { %>
 
-      <h1 class="text-2xl text-center mt-7 mb-5">
-        Here are our Favorite List:
-      </h1>
+      <!-- Header -->
+      <div class="text-center mt-8 mb-10">
+        <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">
+          💝 Your <span class="text-pink-400">Favorites</span>
+        </h1>
+        <p class="text-gray-400 text-sm"><%= favouriteHomes.length %> home(s) saved</p>
+      </div>
 
-      <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:mx-10 mx-4 gap-4 max-w-6xl md:px-0">
+      <!-- Grid -->
+      <ul class="grid mt-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
         <% favouriteHomes.forEach((home) => { %>
 
-          <li class="bg-white rounded-lg shadow-md hover:shadow-lg overflow-hidden cursor-pointer border-t-2 border-cyan-600 w-full">
-            <div class="relative h-40 overflow-hidden bg-gray-200">
-              <img
-                src="<%= home.photo %>"
-                alt="<%= home.houseName %>"
-                class="w-full h-full object-cover"
-              />
+          <li class="group bg-[#1A1B26] rounded-2xl overflow-hidden border border-gray-800 hover:border-pink-500/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 list ">
+            
+            <!-- Image -->
+            <div class="relative h-52 overflow-hidden">
+              <img src="<%= home.photo %>" alt="<%= home.houseName %>" 
+                   class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+              <!-- Heart badge -->
+              <div class="absolute top-3 left-3 bg-pink-500 text-white px-3 py-1.5 rounded-full text-sm font-bold">
+                ♥ Favorite
+              </div>
             </div>
 
-            <div class="p-4">
-              <h2 class="text-base font-semibold text-gray-900">
-                <%= home.houseName %>
-              </h2>
+            <!-- Content -->
+            <div class="p-5">
+              <h2 class="text-white font-bold text-lg truncate"><%= home.houseName %></h2>
+              
+              <div class="flex items-center gap-1.5 mt-1.5 text-gray-400 text-sm">
+                <span>📍</span>
+                <span><%= home.location %></span>
+              </div>
 
-              <p class="text-gray-500 text-xs mt-1">
-                📍 <%= home.location %>
-              </p>
-
-              <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
-                <span class="text-lg font-bold text-cyan-600">
-                  Rs. <%= home.price %>
-                </span>
-                <span class="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded text-xs font-medium">
-                  ⭐ <%= home.rating %>
+              <!-- Price & Rating -->
+              <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-700">
+                <div>
+                  <span class="text-gray-500 text-xs">Price per night</span>
+                  <div class="text-cyan-400 font-bold text-xl">Rs. <%= home.price %></div>
+                </div>
+                <span class="bg-yellow-500/10 text-yellow-400 px-3 py-1.5 rounded-full text-sm font-medium">
+                  ★ <%= home.rating %>
                 </span>
               </div>
 
-              <form action="/favourites/delete/<%= home._id %>" method="POST">
-                <button
-                  type="submit"
-                  class="mt-5 block mx-auto bg-red-600 hover:bg-red-700 text-sm text-white font-semibold py-2 px-4 rounded-2xl transition-all duration-200"
-                >
-                  Delete from Favorites
-                </button>
-              </form>
+              <!-- Actions -->
+              <div class="mt-4 space-y-2">
+                <a href="/index/<%= home._id %>" 
+                   class="block w-full text-center bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2.5 p-3 rounded-xl transition-all text-sm">
+                  👁️ View Details
+                </a>
+                
+                <form action="/favourites/delete/<%= home._id %>" method="POST">
+                  <button type="submit" 
+                          class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 mt-1 cursor-pointer p-3 font-medium py-2.5 rounded-xl transition-all text-sm">
+                    💔 Remove from Favorites
+                  </button>
+                </form>
+              </div>
             </div>
           </li>
 

@@ -1,6 +1,7 @@
-
 const Home = require("../Models/home");
-const fs = require("fs");
+const cloudinary = require("cloudinary").v2;
+const axios = require("axios");
+const FormData = require("form-data");
 
 exports.getAddHome = (req, res, next) => {
   res.render("host/edit-home", {
@@ -12,39 +13,119 @@ exports.getAddHome = (req, res, next) => {
 };
 
 exports.addHostHome = (req, res, next) => {
-  Home.find().then((registeredHome) => {
-    res.render("host/host-home-list", {
-      registeredHome: registeredHome,
-      pageTitle: "Host Homes List",
-      pageName: "Host Home",
-      isLoggedIn: req.isLoggedIn,
+  Home.find()
+    .then((registeredHome) => {
+      // 🔍 DEBUG
+      console.log("=== DEBUG INFO ===");
+      console.log("Number of homes:", registeredHome.length);
+      console.log("Type of first home price:", typeof registeredHome[0]?.price);
+      console.log(
+        "First home data:",
+        JSON.stringify(registeredHome[0], null, 2),
+      );
+      console.log("==================");
+
+      const homes = registeredHome.map((home) => {
+        const obj = home.toObject();
+        console.log("Price value:", obj.price, "Type:", typeof obj.price);
+        return obj;
+      });
+
+      res.render("host/host-home-list", {
+        registeredHome: homes,
+        pageTitle: "Host Homes List",
+        pageName: "Host Home",
+        isLoggedIn: req.isLoggedIn,
+      });
+    })
+    .catch((err) => {
+      console.log("ERROR in addHostHome:", err);
+      res.render("host/host-home-list", {
+        registeredHome: [],
+        pageTitle: "Host Homes List",
+        pageName: "Host Home",
+        isLoggedIn: req.isLoggedIn,
+      });
     });
-  });
 };
 
-exports.postAddHome = (req, res, next) => {
-  const { houseName, price, location, rating, description } = req.body;
+exports.postAddHome = async (req, res, next) => {
+  try {
+    console.log("🔥 POST ADD HOME CALLED");
 
-  const photo = req.files?.photo ? req.files.photo[0].path : "";
-  const pdf = req.files?.pdf ? req.files.pdf[0].path : "";
+    const { houseName, price, location, rating, description } = req.body;
 
-  const home = new Home({
-    houseName,
-    price,
-    location,
-    rating,
-    photo,
-    pdf,
-    description,
-    userId: req.session.user._id,
+    let photo = "";
+    let pdf = "";
+
+    // ✅ IMAGE → CLOUDINARY
+    if (req.files?.photo) {
+      const imageFile = req.files.photo[0];
+
+      const base64Image =
+        `data:${imageFile.mimetype};base64,` +
+        imageFile.buffer.toString("base64");
+
+      const cloudinaryResult = await cloudinary.uploader.upload(base64Image, {
+        folder: "airbnd_homes",
+      });
+
+      photo = cloudinaryResult.secure_url;
+
+      console.log("✅ IMAGE UPLOADED:", photo);
+    }
+
+    // ✅ PDF → UPLOAD.IO
+    if (req.files?.pdf) {
+  const pdfFile = req.files.pdf[0];
+
+  console.log("📄 PDF FOUND:", pdfFile.originalname);
+
+  const formData = new FormData();
+
+  formData.append("file", pdfFile.buffer, {
+    filename: pdfFile.originalname,
+    contentType: "application/pdf",
   });
 
-  home.save()
-    .then(() => res.redirect("/host/host-home-list"))
-    .catch(err => console.log(err));
+  const response = await axios.post(
+    "https://api.bytescale.com/v2/accounts/W142bQ7/uploads/binary",
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.UPLOAD_IO_API_KEY}`,
+        ...formData.getHeaders(),
+      },
+    }
+  );
+
+  pdf = response.data.fileUrl;
+
+  console.log("✅ PDF UPLOADED:", pdf);
+}
+
+    const home = new Home({
+      houseName,
+      price,
+      location,
+      rating,
+      photo,
+      pdf,
+      description,
+      userId: req.session.user._id,
+    });
+
+    await home.save();
+
+    console.log("✅ HOME SAVED");
+
+    res.redirect("/host/host-home-list");
+  } catch (error) {
+    console.log("❌ ERROR:", error);
+
+    res.redirect("/host/host-home-list");
+  }
 };
-
-
 exports.getEditHome = (req, res, next) => {
   const homeId = req.params.homeId;
   const editing = req.query.editing === "true";
@@ -62,37 +143,79 @@ exports.getEditHome = (req, res, next) => {
   });
 };
 
-exports.postEditHome = (req, res, next) => {
-  const { _id, houseName, price, location, rating, description } = req.body;
+exports.postEditHome = async (req, res, next) => {
+  try {
+    const { _id, houseName, price, location, rating, description } = req.body;
 
-  Home.findById(_id)
-    .then((home) => {
-      home.houseName = houseName;
-      home.price = price;
-      home.location = location;
-      home.rating = rating;
-      home.description = description;
+    const home = await Home.findById(_id);
 
-      if (req.files?.photo) {
-        if (home.photo) fs.unlink(home.photo, () => { });
-        home.photo = req.files.photo[0].path;
-      }
+    if (!home) {
+      return res.redirect("/host/host-home-list");
+    }
 
-      if (req.files?.pdf) {
-        if (home.pdf) fs.unlink(home.pdf, () => { });
-        home.pdf = req.files.pdf[0].path;
-      }
+    home.houseName = houseName;
+    home.price = price;
+    home.location = location;
+    home.rating = rating;
+    home.description = description;
 
-      return home.save();
-    })
-    .then(() => {
+    // ✅ IMAGE → CLOUDINARY
+    if (req.files?.photo) {
+      const imageFile = req.files.photo[0];
 
-      res.redirect("/host/host-home-list");
-    })
-    .catch((err) => {
-      console.log("Error updating home:", err);
-      res.redirect("/host/host-home-list");
-    });
+      const base64Image =
+        `data:${imageFile.mimetype};base64,` +
+        imageFile.buffer.toString("base64");
+
+      const cloudinaryResult = await cloudinary.uploader.upload(base64Image, {
+        folder: "airbnd_homes",
+      });
+
+      home.photo = cloudinaryResult.secure_url;
+    }
+
+    // ✅ PDF → UPLOAD.IO
+    if (req.files?.pdf) {
+      const pdfFile = req.files.pdf[0];
+
+      const formData = new FormData();
+
+      formData.append("file", pdfFile.buffer, {
+  filename: pdfFile.originalname,
+  contentType: "application/pdf",
+});
+
+      const response = await axios.post(
+  "https://api.bytescale.com/v2/accounts/W142bQ7/uploads/binary",
+  formData,
+  {
+    headers: {
+      Authorization: `Bearer ${process.env.UPLOAD_IO_API_KEY}`,
+      ...formData.getHeaders(),
+    },
+  }
+);
+
+// 🔥 FORCE CLEAN FILE NAME
+const cleanName = pdfFile.originalname.replace(/\s/g, "-");
+
+pdf = response.data.fileUrl + `?download=${cleanName}.pdf`;
+
+console.log("✅ PDF UPLOADED:", pdf);
+
+      home.pdf = response.data.fileUrl;
+    }
+
+    await home.save();
+
+    console.log("✅ HOME UPDATED");
+
+    res.redirect("/host/host-home-list");
+  } catch (err) {
+    console.log("❌ Error updating home:", err);
+
+    res.redirect("/host/host-home-list");
+  }
 };
 
 exports.postDeleteHome = (req, res, next) => {
@@ -120,23 +243,25 @@ exports.getHostBookings = async (req, res, next) => {
 
     const Booking = require("../Models/booking");
     const Home = require("../Models/home");
-    
+
     console.log("Host ID:", req.session.user._id); // Debug
-    
+
     // Host ke saare homes find karo
     const hostHomes = await Home.find({ userId: req.session.user._id });
     console.log("Host Homes found:", hostHomes.length); // Debug
-    
-    const homeIds = hostHomes.map(home => home._id);
+
+    const homeIds = hostHomes.map((home) => home._id);
     console.log("Home IDs:", homeIds); // Debug
-    
+
     // In homes ki saari bookings find karo
-    const bookings = await Booking.find({ 
-      homeId: { $in: homeIds } 
-    }).populate("homeId").sort({ bookingDate: -1 });
-    
+    const bookings = await Booking.find({
+      homeId: { $in: homeIds },
+    })
+      .populate("homeId")
+      .sort({ bookingDate: -1 });
+
     console.log("Bookings found:", bookings.length); // Debug
-    
+
     res.render("host/bookings", {
       bookings: bookings,
       pageTitle: "My Homes Bookings",

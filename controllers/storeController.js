@@ -1,13 +1,12 @@
 const Home = require("../Models/home");
 const User = require("../Models/user");
 const Booking = require("../Models/booking");
+const axios = require("axios");
 const path = require('path');
 const rootDir = require("../utils/pathUtil");
 exports.addIndex = async (req, res, next) => {
   try {
     const registeredHome = await Home.find();
-    
-    // Sabhi booked homes ki IDs nikaalo (kisi bhi user ne book kiye hoon)
     const Booking = require("../Models/booking");
     const allBookings = await Booking.find().select('homeId');
     const bookedHomeIds = allBookings.map(b => b.homeId.toString());
@@ -113,17 +112,23 @@ exports.getHouseRules = [
   },
 
   async (req, res, next) => {
-    const homeId = req.params.homeId;
-    const home = await Home.findById(homeId);
-    if (!home || !home.pdf) {
-      return res.redirect("/");
-    }
+    try {
+      const homeId = req.params.homeId;
+      const home = await Home.findById(homeId);
+      
+      if (!home || !home.pdf) {
+        return res.redirect("/");
+      }
 
-    res.download(home.pdf);
+      // ✅ Cloudinary PDF ko naye tab mein open karne do
+      res.redirect(home.pdf);
+      
+    } catch (err) {
+      console.log("Error:", err);
+      res.redirect("/");
+    }
   },
 ];
-
-
 // GET request - Booking form show karo
 exports.getConfirmBooking = async (req, res, next) => {
   try {
@@ -202,6 +207,43 @@ exports.postConfirmBooking = async (req, res, next) => {
     res.redirect("/host/bookings");
   } catch (err) {
     console.log("Error confirming booking:", err);
+    res.redirect("/");
+  }
+};
+
+// PDF Download Proxy
+exports.downloadPdf = async (req, res, next) => {
+  try {
+    if (!req.session.isLoggedIn) {
+      return res.redirect("/login");
+    }
+
+    const homeId = req.params.homeId;
+    const home = await Home.findById(homeId);
+
+    if (!home || !home.pdf) {
+      return res.redirect("/");
+    }
+
+    // PDF ko server se fetch karo
+    const response = await axios({
+      method: "GET",
+      url: home.pdf,
+      responseType: "stream",
+    });
+
+    const fileName = `${home.houseName.replace(/\s+/g, "-")}-Rules.pdf`;
+
+    // ✅ Yeh headers browser ko force karenge PDF download karne ke liye
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${fileName}"`
+    );
+
+    response.data.pipe(res);
+  } catch (err) {
+    console.log("PDF Download Error:", err);
     res.redirect("/");
   }
 };

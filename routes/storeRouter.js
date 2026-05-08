@@ -8,6 +8,7 @@ storeRouter.get("/", storeController.addIndex);
 storeRouter.get("/index", storeController.addHome);
 storeRouter.get("/index/:homeId", storeController.getHomeDetails);
 storeRouter.get("/rules/:homeId", storeController.getHouseRules);
+storeRouter.get("/download-pdf/:homeId", storeController.downloadPdf);
 
 // Guest only routes - sirf logged in guests
 storeRouter.get("/favourites", auth.isGuest, storeController.getFavoriteList);

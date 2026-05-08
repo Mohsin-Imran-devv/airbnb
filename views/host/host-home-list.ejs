@@ -1,54 +1,91 @@
 <%- include('../partials/head') %>
-  </head>
+<style>
+  .list{
+    margin-left: 3px; 
+    margin-right: 3px;
+    margin-bottom: 10px;
+  }
+</style>
+</head>
 
-  <body>
-    <%- include('../partials/nav') %>
-      <main>
+<body>
+  <%- include('../partials/nav') %>
+  <main class="px-4 md:px-8 pb-20">
+    
+    <!-- Header -->
+    <div class="text-center mt-8 mb-10">
+      <h1 class="text-3xl md:text-4xl font-bold text-white">Hey Host! 👋</h1>
+      <p class="text-gray-400 mt-2">Here are your registered homes</p>
+    </div>
 
-        <h1 class="text-2xl text-center mt-7 ">Hey Host! Here are your Homes ❤️</h1>
-        <ul class="mt-6 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
-          <% registeredHome.forEach((home)=> { %>
-            <li
-              class="bg-white rounded-lg my-0 mx-auto shadow-md hover:shadow-lg overflow-hidden transform cursor-pointer border-t-2 border-cyan-600 w-[95%] md:w-full">
-              <div class="relative h-40 overflow-hidden bg-gray-200">
-                <img src="/<%= home.photo %>" alt="<%= home.houseName %>" class="w-full h-full object-cover">
-              </div>
-              <div class="p-4">
-                <h2 class="text-base font-semibold text-gray-900">
-                  <%= home.houseName %>
-                </h2>
-                <p class="text-gray-500 text-xs mt-1">📍 <%= home.location %>
-                </p>
-                <p class="text-gray-600 text-sm mt-2">
-                  <%= home.description %>
-                </p>
-                <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
-                  <span class="text-lg font-bold text-cyan-600">Rs. <%= home.price %></span>
-                  <span
-                    class="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded text-xs font-medium">⭐
-                    <%= home.rating %>
-                  </span>
-                </div>
+    <% if (registeredHome && registeredHome.length > 0) { %>
+    <!-- Grid -->
+    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mt-5">
+      <% registeredHome.forEach((home)=> { %>
+        <li class="bg-[#1A1B26] list rounded-2xl overflow-hidden border mx-4 border-gray-800 hover:border-cyan-500/50 transition-all duration-300 group">
+          
+          <!-- Image -->
+          <div class="relative h-52 overflow-hidden">
+            <img src="<%= home.photo %>" alt="<%= home.houseName %>" 
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          </div>
 
-                <a href="/host/edit-home/<%=home._id%>?editing=true"
-                  class="mt-4 w-full block text-center bg-blue-600 cursor-pointer hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-all duration-200">Edit</a>
-                <form action="/host/delete-home/<%= home._id %>" method="POST">
-                  <button type="submit"
-                    class="mt-4 w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-all duration-200 block text-center">Delete</button>
-                </form>
-              </div>
-            </li>
-            <% }); %>
-        </ul>
-        <div class="mt-20 mb-20 py-8 w-[90%] max-w-[400px] mx-auto text-center border-2 rounded-2xl shadow-xl">
+          <!-- Content -->
+          <div class="p-5">
+            <h2 class="text-white font-bold text-xl mb-1"><%= home.houseName %></h2>
+            <p class="text-gray-400 text-sm flex items-center gap-1 mb-2">
+              <span>📍</span> <%= home.location %>
+            </p>
+            <p class="text-gray-500 text-sm line-clamp-2"><%= home.description %></p>
+            
+            <!-- Price & Rating -->
+            <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-700">
+              <span class="text-cyan-400 font-bold text-2xl">Rs. <%= home.price %></span>
+              <span class="bg-yellow-500/10 text-yellow-400 px-3 py-1 rounded-full text-sm font-medium">
+                ★ <%= home.rating %>
+              </span>
+            </div>
 
-          <a href="/host/add-home"
-            class="relative text-center self-center inline-block hover:underline text-white pb-1 w-full sm:w-auto">
-            Add Home
-          </a>
+            <!-- Buttons -->
+            <div class="mt-4 space-y-2">
+              <a href="/host/edit-home/<%=home._id%>?editing=true" 
+                 class="block w-full text-center bg-blue-600 hover:bg-blue-700 p-3 text-white font-medium py-2.5 rounded-xl transition-all text-sm">
+                ✏️ Edit
+              </a>
+              <form action="/host/delete-home/<%= home._id %>" method="POST">
+                <button type="submit" 
+                        class="w-full bg-red-500/10 hover:bg-red-500/20 p-3 mt-1 cursor-pointer text-red-400 border border-red-500/30 font-medium py-2.5 rounded-xl transition-all text-sm">
+                  🗑️ Delete
+                </button>
+              </form>
+            </div>
+          </div>
+        </li>
+      <% }); %>
+    </ul>
 
-        </div>
-      </main>
-  </body>
+    <% } else { %>
+      <!-- Empty State -->
+      <div class="text-center mt-20">
+        <div class="text-2xl mb-4">🏠</div>
+        <p class="text-gray-400 text-2xl mb-6">No homes added yet!</p>
+        <a href="/host/add-home" 
+           class="inline-block bg-cyan-600 p-3 hover:bg-cyan-700 text-white font-semibold py-3 px-8 rounded-xl transition-all">
+           Add Your First Home
+        </a>
+      </div>
+    <% } %>
 
-  </html>
+    <!-- Add Home Button -->
+    <% if (registeredHome && registeredHome.length > 0) { %>
+    <div class="text-center mt-12">
+      <a href="/host/add-home" 
+         class="inline-block p-3 mt-3 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-3 px-8 rounded-xl transition-all">
+         Add New Home
+      </a>
+    </div>
+    <% } %>
+
+  </main>
+</body>
+</html>
