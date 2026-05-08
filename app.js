@@ -67,8 +67,8 @@ app.use(
     cookie: {
       maxAge: 1000 * 60 * 60 * 24,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // ✅ Vercel pe HTTPS hoga
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production", // ✅ Vercel pe true hoga
+      sameSite: "none", // ✅ Vercel ke liye none chahiye
     },
   })
 );
